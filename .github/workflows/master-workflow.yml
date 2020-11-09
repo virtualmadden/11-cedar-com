@@ -1,68 +1,67 @@
-name: master workflow
+name: Master Workflow
 on:
   push:
     branches:
     - master
 jobs:
   build_and_test:
-    name: build and test
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@master
-      - name: node setup
+      - name: Node Setup
         uses: actions/setup-node@master
         with:
-          node-version: '13.x'
-      - name: npm install
+          node-version: '12.x'
+      - name: NPM Install
         run: npm install
-      - name: npm build
+      - name: NPM Build
         run: npm run build
-      - name: npm test
+      - name: NPM Test
         run: npm run test:ci
-      - name: upload artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@master
         with:
           name: build_artifacts
           path: './build'
   initialize_and_deploy:
-    name: initialize and deploy
+    name: Initialize and Deploy
     runs-on: ubuntu-latest
     needs: [build_and_test]
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@master
-      - name: download artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@master
         with:
           name: build_artifacts
           path: './build'
-      - name: configure aws credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
-      - name: terraform initialize
+      - name: 'Terraform Initialize'
         uses: hashicorp/terraform-github-actions@master
         with:
-          tf_actions_version: 0.12.18
+          tf_actions_version: 0.13.5
           tf_actions_subcommand: 'init'
           tf_actions_working_dir: './infrastructure/terraform'
           tf_actions_comment: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: terraform apply
+      - name: 'Terraform Apply'
         uses: hashicorp/terraform-github-actions@master
         with:
-          tf_actions_version: 0.12.18
+          tf_actions_version: 0.13.5
           tf_actions_subcommand: 'apply'
           tf_actions_working_dir: './infrastructure/terraform'
           tf_actions_comment: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: sync
-        run: aws s3 sync ./build s3://11cedar.com
+        run: aws s3 sync ./build s3://11cedar.com --exclude \"*.DS_Store*\"
       - name: cache
         run: aws s3 cp ./build/index.html s3://11cedar.com/index.html --cache-control max-age=0
-

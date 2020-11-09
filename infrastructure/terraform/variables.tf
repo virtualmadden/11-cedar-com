@@ -12,7 +12,7 @@ variable "app_namespace" {
 
 locals {
   bucket_name = "${replace(var.app_namespace, "_", "-")}-${terraform.workspace}-client"
-  domain_name = "${var.app_namespace}.dev"
+  domain_name = "${var.app_namespace}.com"
 }
 
 data "aws_caller_identity" "current" {}

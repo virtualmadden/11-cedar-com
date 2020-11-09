@@ -20,7 +20,7 @@ data "aws_caller_identity" "current" {}
 terraform {
   backend "s3" {
     bucket  = "vrtlmdn-terraform-state"
-    key     = "11cedar-com"
+    key     = "11-cedar-com"
     region  = "us-west-2"
   }
   required_version = ">= 0.13"
